@@ -1,1 +1,4 @@
 # shitpost-bot
+
+Dependencies:
+ -Pillow
