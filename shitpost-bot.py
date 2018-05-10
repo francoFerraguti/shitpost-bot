@@ -6,64 +6,71 @@ import json
 CONST_TEMPLATES_PATH = "./templates"
 CONST_SOURCE_IMAGES_PATH = "./source_images"
 CONST_MEMES_PATH = "./memes"
+CONST_MEME_NUMBER = 10
 
-templates = []
-source_images = []
+def getTemplates(path):
+	templates = []
 
-print("----------------------------------------")
-print("Starting bot")
-print("")
+	for file in os.listdir(path):
+	    if file.endswith(".jpg") or file.endswith(".png"):
+	        templates.append(path + "/" + file)
 
-for file in os.listdir(CONST_TEMPLATES_PATH):
-    if file.endswith(".jpg") or file.endswith(".png"):
-        templates.append(CONST_TEMPLATES_PATH + "/" + file)
-        print("Added template: " + CONST_TEMPLATES_PATH + "/" + file + " to the bot")
+	print("TOTAL TEMPLATES: " + str(len(templates)))
 
-print("")
-print("TOTAL TEMPLATES: " + str(len(templates)))
-print("")
+	return templates
 
-template = Image.open(random.choice(templates))
-print("Selected template: " + template.filename)
+def getTemplateCoordinates(template, path):
+	templatecoordinates = (0, 0, 0, 0)
 
-templatecoordinates = (0, 0, 0, 0)
+	with open(path + '/templates.json') as templates_json:
+		data = json.load(templates_json)
+		for template_data in data:
+			if path + "/" + template_data["filename"] == template.filename:
+				templatecoordinates = (template_data["left"], template_data["top"], template_data["right"], template_data["down"])
+				return templatecoordinates
 
-with open(CONST_TEMPLATES_PATH + '/templates.json') as templates_json:
-    data = json.load(templates_json)
-    for template_data in data:
-    	if CONST_TEMPLATES_PATH + "/" + template_data["filename"] == template.filename:
-    		templatecoordinates = (template_data["left"], template_data["top"], template_data["right"], template_data["down"])
 
-print("Selected coordinates: " + str(templatecoordinates))
-print("")
+def getSourceImages(path):
+	source_images = []
 
-for file in os.listdir(CONST_SOURCE_IMAGES_PATH):
-    if file.endswith(".jpg") or file.endswith(".png"):
-        source_images.append(CONST_SOURCE_IMAGES_PATH + "/" + file)
-        print("Added source image: " + CONST_TEMPLATES_PATH + "/" + file + " to the bot")
+	for file in os.listdir(path):
+	    if file.endswith(".jpg") or file.endswith(".png"):
+	        source_images.append(path + "/" + file)
 
-print("")
-print("TOTAL SOURCE IMAGES: " + str(len(source_images)))
-print("")
+	print("TOTAL SOURCE IMAGES: " + str(len(source_images)))
+	return source_images
 
-source_image = Image.open(random.choice(source_images))
-print("Selected source image: " + source_image.filename)
+def getResultFilename(path):
+	c = 0
 
-print("")
-print(">>>>>>>>STARTING MEME GENERATION<<<<<<<<<")
-print("Source image old size: " + str(source_image.size))
+	for file in os.listdir(path):
+	    if file.endswith(".png"):
+	        c+=1
+	return str(c)
 
-newsize = (templatecoordinates[2] - templatecoordinates[0], templatecoordinates[3] - templatecoordinates[1])
-print("Source image new size: " + str(newsize))
 
-source_image = source_image.resize(newsize)
-print("Source image actual size: " + str(source_image.size))
+for i in range(0, CONST_MEME_NUMBER):
+	print("----------------------------------------")
+	print("Starting bot")
+	print("")
 
-template.paste(source_image, templatecoordinates)
+	templates = getTemplates(CONST_TEMPLATES_PATH)
+	source_images = getSourceImages(CONST_SOURCE_IMAGES_PATH)
 
-print("")
-print("Meme generated! Saving to: " + CONST_MEMES_PATH + "/meme.png")
+	template = Image.open(random.choice(templates))
+	source_image = Image.open(random.choice(source_images))
 
-template.save(CONST_MEMES_PATH + "/meme.png")
+	templatecoordinates = getTemplateCoordinates(template, CONST_TEMPLATES_PATH)
 
-print("----------------------------------------")
+	newsize = (templatecoordinates[2] - templatecoordinates[0], templatecoordinates[3] - templatecoordinates[1])
+
+	source_image = source_image.resize(newsize)
+
+	template.paste(source_image, templatecoordinates)
+
+	template.save(CONST_MEMES_PATH + "/"+ getResultFilename(CONST_MEMES_PATH) +".png")
+
+	print("----------------------------------------")
+
+
+
