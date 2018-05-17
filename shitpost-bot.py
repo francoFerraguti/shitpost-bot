@@ -8,6 +8,8 @@ CONST_SOURCE_IMAGES_PATH = "./source_images"
 CONST_MEMES_PATH = "./memes"
 CONST_MEME_NUMBER = 10
 
+CONST_CHROMA_COLORS = [(55, 255, 9)]
+
 def getTemplates(path):
 	templates = []
 
@@ -19,16 +21,23 @@ def getTemplates(path):
 
 	return templates
 
-def getTemplateCoordinates(template, path):
-	templatecoordinates = (0, 0, 0, 0)
+def getTemplateCoordinates(template):
+	pixels = template.load()
 
-	with open(path + '/templates.json') as templates_json:
-		data = json.load(templates_json)
-		for template_data in data:
-			if path + "/" + template_data["filename"] == template.filename:
-				templatecoordinates = (template_data["left"], template_data["top"], template_data["right"], template_data["down"])
-				return templatecoordinates
+	left = 9999999
+	top = 9999999
+	right = 0
+	down = 0
 
+	for y in range(template.height):
+		for x in range(template.width):
+			if pixels[x, y] == (55, 255, 9):
+				left = x if (x < left) else left
+				top = y if (y < top) else top
+				right = x if (x > right) else right
+				down = y if (y > down) else down
+
+	return (left, top, right, down)
 
 def getSourceImages(path):
 	source_images = []
@@ -60,7 +69,10 @@ for i in range(0, CONST_MEME_NUMBER):
 	template = Image.open(random.choice(templates))
 	source_image = Image.open(random.choice(source_images))
 
-	templatecoordinates = getTemplateCoordinates(template, CONST_TEMPLATES_PATH)
+	print("SELECTED TEMPLATE: " + os.path.basename(template.filename))
+	print("SELECTED SOURCE IMAGE: " + os.path.basename(source_image.filename))
+
+	templatecoordinates = getTemplateCoordinates(template)
 
 	newsize = (templatecoordinates[2] - templatecoordinates[0], templatecoordinates[3] - templatecoordinates[1])
 
