@@ -10,6 +10,9 @@ CONST_MEME_NUMBER = 10
 
 CONST_CHROMA_COLORS = [(55, 255, 9)]
 
+def tupleToString(t):
+	return "".join(str(x) for x in t)
+
 def getTemplates(path):
 	templates = []
 
@@ -24,18 +27,31 @@ def getTemplates(path):
 def getTemplateCoordinates(template):
 	pixels = template.load()
 
-	left = 9999999
-	top = 9999999
-	right = 0
-	down = 0
+	left = {}
+	top = {}
+	right = {}
+	down = {}
+
+	for color in CONST_CHROMA_COLORS:
+		left[tupleToString(color)] = 9999999
+		top[tupleToString(color)] = 9999999
+		right[tupleToString(color)] = 0
+		down[tupleToString(color)] = 0
 
 	for y in range(template.height):
 		for x in range(template.width):
-			if pixels[x, y] == (55, 255, 9):
-				left = x if (x < left) else left
-				top = y if (y < top) else top
-				right = x if (x > right) else right
-				down = y if (y > down) else down
+			for color in CONST_CHROMA_COLORS:
+				if pixels[x, y] == color:
+					left[tupleToString(color)] = x if (x < left[tupleToString(color)]) else left[tupleToString(color)]
+					top[tupleToString(color)] = y if (y < top[tupleToString(color)]) else top[tupleToString(color)]
+					right[tupleToString(color)] = x if (x > right[tupleToString(color)]) else right[tupleToString(color)]
+					down[tupleToString(color)] = y if (y > down[tupleToString(color)]) else down[tupleToString(color)]
+
+	for color in CONST_CHROMA_COLORS:
+		print(str(left[tupleToString(color)]))
+		print(str(top[tupleToString(color)]))
+		print(str(right[tupleToString(color)]))
+		print(str(down[tupleToString(color)]))
 
 	return (left, top, right, down)
 
@@ -67,18 +83,20 @@ for i in range(0, CONST_MEME_NUMBER):
 	source_images = getSourceImages(CONST_SOURCE_IMAGES_PATH)
 
 	template = Image.open(random.choice(templates))
-	source_image = Image.open(random.choice(source_images))
 
 	print("SELECTED TEMPLATE: " + os.path.basename(template.filename))
-	print("SELECTED SOURCE IMAGE: " + os.path.basename(source_image.filename))
 
 	templatecoordinates = getTemplateCoordinates(template)
 
-	newsize = (templatecoordinates[2] - templatecoordinates[0], templatecoordinates[3] - templatecoordinates[1])
+	for color in CONST_CHROMA_COLORS:
+		source_image = Image.open(random.choice(source_images))
+		print("SELECTED SOURCE IMAGE: " + os.path.basename(source_image.filename))
 
-	source_image = source_image.resize(newsize)
+		newsize = (templatecoordinates[2][tupleToString(color)] - templatecoordinates[0][tupleToString(color)], templatecoordinates[3][tupleToString(color)] - templatecoordinates[1][tupleToString(color)])
 
-	template.paste(source_image, templatecoordinates)
+		source_image = source_image.resize(newsize)
+
+		template.paste(source_image, (templatecoordinates[0][tupleToString(color)], templatecoordinates[1][tupleToString(color)], templatecoordinates[2][tupleToString(color)], templatecoordinates[3][tupleToString(color)]))
 
 	template.save(CONST_MEMES_PATH + "/"+ getResultFilename(CONST_MEMES_PATH) +".png")
 
